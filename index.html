@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Student Report Card Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-light py-4">
+
+<div class="container">
+    <h2 class="mb-4 text-center fw-bold">📊 Student Report Card Dashboard</h2>
+
+    <!-- Search -->
+    <form method="get" class="mb-3 d-flex justify-content-center">
+        <input type="text" name="search" class="form-control w-50 me-2" placeholder="Search by Name or Roll">
+        <button class="btn btn-outline-primary">Search</button>
+    </form>
+
+    <!-- Actions -->
+    <div class="d-flex justify-content-between mb-4 flex-wrap">
+        <button class="btn btn-success mb-2" data-bs-toggle="modal" data-bs-target="#addModal">➕ Add Student</button>
+        <a href="/download" class="btn btn-primary mb-2">⬇️ Download CSV</a>
+    </div>
+
+    <!-- Stats -->
+    <div class="row text-center mb-4">
+        <div class="col-md-4 mb-3">
+            <div class="card shadow-sm bg-primary text-white">
+                <div class="card-body">
+                    <h5>Total Students</h5>
+                    <h3>{{ stats.total }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card shadow-sm bg-success text-white">
+                <div class="card-body">
+                    <h5>Average Percentage</h5>
+                    <h3>{{ stats.average_percentage }}%</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card shadow-sm bg-warning text-dark">
+                <div class="card-body">
+                    <h5>Top Performer</h5>
+                    <h3>{{ stats.top_performer }}</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Table -->
+    <div class="table-responsive">
+        <table class="table table-bordered table-hover align-middle text-center table-striped">
+            <thead class="table-dark">
+                <tr>
+                    <th>ID</th><th>Name</th><th>Roll</th>
+                    <th>Math</th><th>Science</th><th>English</th>
+                    <th>Percentage</th><th>Grade</th><th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in students %}
+                <tr>
+                    <td>{{ s.id }}</td>
+                    <td>{{ s.name }}</td>
+                    <td>{{ s.roll }}</td>
+                    <td>{{ s.math }}</td>
+                    <td>{{ s.science }}</td>
+                    <td>{{ s.english }}</td>
+                    <td>{{ s.percentage }}%</td>
+                    <td>{{ s.grade }}</td>
+                    <td>
+                        <button class="btn btn-sm btn-warning me-1" data-bs-toggle="modal" data-bs-target="#editModal{{ s.id }}">Edit</button>
+                        <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ s.id }}">Delete</button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Edit and Delete Modals -->
+    {% for s in students %}
+    <!-- Edit Modal -->
+    <div class="modal fade" id="editModal{{ s.id }}" tabindex="-1" aria-labelledby="editModalLabel{{ s.id }}" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form method="post" action="/edit/{{ s.id }}">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="editModalLabel{{ s.id }}">Edit - {{ s.name }}</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <label for="edit-name-{{ s.id }}">Name:</label>
+                        <input type="text" id="edit-name-{{ s.id }}" name="name" class="form-control mb-2"
+                               value="{{ s.name }}" pattern="^[A-Za-z ]+$" required
+                               title="Name should only contain letters and spaces"
+                               aria-label="Student name">
+                    
+                        <label for="edit-roll-{{ s.id }}">Roll:</label>
+                        <input type="text" id="edit-roll-{{ s.id }}" name="roll" class="form-control mb-2"
+                               value="{{ s.roll }}" pattern="^[1-9A-Z][A-Z0-9]*$" required
+                               title="Roll number must start with 1-9 or a capital letter and contain only capital letters and numbers"
+                               aria-label="Roll number">
+                    
+                        <label for="edit-math-{{ s.id }}">Math:</label>
+                        <input type="number" id="edit-math-{{ s.id }}" name="math" class="form-control mb-2"
+                               value="{{ s.math }}" min="0" max="100" required aria-label="Math marks">
+                    
+                        <label for="edit-science-{{ s.id }}">Science:</label>
+                        <input type="number" id="edit-science-{{ s.id }}" name="science" class="form-control mb-2"
+                               value="{{ s.science }}" min="0" max="100" required aria-label="Science marks">
+                    
+                        <label for="edit-english-{{ s.id }}">English:</label>
+                        <input type="number" id="edit-english-{{ s.id }}" name="english" class="form-control mb-2"
+                               value="{{ s.english }}" min="0" max="100" required aria-label="English marks">
+                    </div>                    
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary">Save</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Modal -->
+    <div class="modal fade" id="deleteModal{{ s.id }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ s.id }}" aria-hidden="true">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteModalLabel{{ s.id }}">Confirm Delete</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <p>Are you sure you want to delete <strong>{{ s.name }}</strong>?</p>
+                </div>
+                <div class="modal-footer justify-content-center">
+                    <form method="post" action="/delete/{{ s.id }}">
+                        <button type="submit" class="btn btn-danger">Delete</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+
+    <!-- Subject Chart -->
+    <div class="card mt-4 shadow-sm">
+        <div class="card-header bg-white fw-bold">📈 Subject Average Scores</div>
+        <div class="card-body">
+            <canvas id="subjectChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Add Modal -->
+    <div class="modal fade" id="addModal" tabindex="-1" aria-labelledby="addModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form method="post" action="/add">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="addModalLabel">Add Student</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="text" name="name" class="form-control mb-2" placeholder="Name" required pattern="^[A-Za-z ]+$" title="Name should only contain letters and spaces">
+                        <input type="text" name="roll" class="form-control mb-2" placeholder="Roll Number" required pattern="^[1-9A-Z][A-Z0-9]*$" title="Roll number must start with 1-9 or a capital letter and can only contain capital letters and numbers">
+                        <input type="number" name="math" class="form-control mb-2" placeholder="Math Marks" min="0" max="100" required>
+                        <input type="number" name="science" class="form-control mb-2" placeholder="Science Marks" min="0" max="100" required>
+                        <input type="number" name="english" class="form-control mb-2" placeholder="English Marks" min="0" max="100" required>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-success">Add</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="mt-5 text-center">
+        <p class="text-muted">&copy; 2025 Student Report Card System</p>
+    </footer>
+</div>
+
+<!-- Chart Script -->
+<script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const ctx = document.getElementById('subjectChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Math', 'Science', 'English'],
+                    datasets: [{
+                        label: 'Average Marks',
+                        data: [
+                            {{ stats.average_math }},
+                            {{ stats.average_science }},
+                            {{ stats.average_english }}
+                        ],
+                        backgroundColor: ['#0d6efd', '#198754', '#ffc107']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100
+                        }
+                    }
+                }
+            });
+        });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
